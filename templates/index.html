@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo App</title>
+
+    <style>
+        /* Le corps de la page (le fond) */
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+            background-color: #f0f8ff; /* Bleu très clair */
+        }
+        
+        /* La boîte blanche principale */
+        .container { 
+            max-width: 800px; /* J'ai élargi un peu pour faire tenir les prévisions */
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; /* Coins arrondis */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Petite ombre */
+        }
+
+        .error { color: red; }
+
+        /* Le trait de séparation pour les résultats */
+        .resultat { 
+            margin-top: 20px; 
+            border-top: 1px solid #eee; 
+            padding-top: 20px; 
+        }
+
+        /* Taille des images météo */
+        img { width: 100px; }
+
+        /* --- NOUVEAU STYLE POUR LES PRÉVISIONS --- */
+        /* Flexbox permet d'aligner les éléments côte à côte */
+        .previsions-container {
+            display: flex; 
+            flex-wrap: wrap; /* Si pas de place, ça passe à la ligne */
+            justify-content: center; /* Centré au milieu */
+            gap: 15px; /* Espace entre les cartes */
+            margin-top: 20px;
+        }
+
+        /* Le style d'une petite carte (un jour) */
+        .carte-jour {
+            border: 1px solid #ddd; /* Bordure grise fine */
+            border-radius: 8px;
+            padding: 10px;
+            width: 120px; /* Largeur fixe pour chaque carte */
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Quel temps fait-il ? 🌤️</h1>
+
+        <form method="POST">
+            <input type="text" name="ville_utilisateur" placeholder="Entrez une ville (ex: Paris)" required>
+            <button type="submit">Rechercher</button>
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        {% if ma_meteo %}
+            <div class="resultat">
+                <h2>Météo à {{ ma_meteo['ville'] }}</h2>
+                
+                <img src="http://openweathermap.org/img/wn/{{ ma_meteo['icon'] }}@2x.png" alt="icone meteo">
+                
+                <p><strong>{{ ma_meteo['temperature'] }}°C</strong> - {{ ma_meteo['description'] }}</p>
+                <p>💧 Humidité : {{ ma_meteo['humidite'] }}%</p>
+                <p>💨 Vent : {{ ma_meteo['vent'] }} km/h</p>
+                
+                {% if ma_meteo['pluie'] > 0 %}
+                    <p>☔ Pluie (1h) : {{ ma_meteo['pluie'] }} mm</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+
+        {% if previsions %} <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <h3>Prévisions sur 5 jours</h3>
+                
+                <div class="previsions-container">
+                    
+                    {% for jour in previsions %}
+                        
+                        <div class="carte-jour">
+                            <p style="font-weight: bold;">{{ jour.date }}</p>
+                            
+                            <img src="http://openweathermap.org/img/wn/{{ jour.icon }}.png" alt="icon" style="width: 50px;">
+                            
+                            <p>{{ jour.temp }}°C</p>
+                            
+                            <p style="font-size: 0.8em; color: gray;">{{ jour.description }}</p>
+                        </div>
+
+                    {% endfor %} </div>
+            </div>
+            
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
