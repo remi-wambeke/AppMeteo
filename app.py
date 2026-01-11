@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request
 import requests
+from datetime import datetime
 
 app = Flask(__name__)
 
 api_key = "696163d4cc6236dae2e4086764e086cc"
-
-# --- ZONE 1 : LES FONCTIONS OUTILS (Helpers) ---
-# Il est préférable de les mettre AVANT la route principale
 
 def get_previsions(ville, api_key):
     url = f"https://api.openweathermap.org/data/2.5/forecast?q={ville}&appid={api_key}&units=metric&lang=fr" 
@@ -28,7 +26,6 @@ def get_previsions(ville, api_key):
     return None
 
 def vetement(temp, pluie):
-    # ATTENTION : On utilise return, pas print !
     if temp < 10 and pluie > 0:
         return f"Il fait {temp}°C et il y a des risques de pluie. N'oubliez pas votre parapluie 😉"
     elif temp < 10 and pluie == 0:
@@ -39,8 +36,13 @@ def vetement(temp, pluie):
         return "Risque de pluie aujourd'hui. J'espère que vous n'êtes pas en sucre 😉"
     else:
         return f"Il fait {temp}°C aujourd'hui, n'oubliez pas vos lunettes de soleil 😉"
+    
+#def get_heure():
+#    jour = datetime.now()
+#    heure_actuelle = jour.hour
 
-# --- ZONE 2 : LA ROUTE ---
+    
+
 
 @app.route('/', methods=['GET', 'POST'])    
 def get_weather():
@@ -50,7 +52,6 @@ def get_weather():
     
     if request.method == "POST":
         ville_brute = request.form.get("ville_utilisateur")
-        # Protection contre le vide (si l'utilisateur ne tape rien)
         if ville_brute: 
             ville = ville_brute.lower().strip()
             url = f"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={api_key}&units=metric&lang=fr"
@@ -59,11 +60,9 @@ def get_weather():
             if reponse.status_code == 200:
                 data = reponse.json()
                 
-                # 1. On récupère d'abord les infos de base
                 temp_actuelle = round(data['main']['temp'], 1)
                 pluie_actuelle = data.get('rain', {}).get('1h', 0)
                 
-                # 2. On appelle ta fonction conseil
                 le_conseil = vetement(temp_actuelle, pluie_actuelle)
                 
                 ma_meteo = {
@@ -74,7 +73,7 @@ def get_weather():
                     "humidite": data['main']['humidity'],
                     "vent": round(data['wind']['speed'] * 3.6),
                     "pluie": pluie_actuelle,
-                    "conseil": le_conseil  # <--- On l'ajoute ici pour le HTML !
+                    "conseil": le_conseil  
                 }
                 
                 previ = get_previsions(ville, api_key)
