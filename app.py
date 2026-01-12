@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request
 import requests
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-api_key = "696163d4cc6236dae2e4086764e086cc"
+api_key = os.getenv("OPENWEATHER_API_KEY")
+
+print(f"Ma clé API est : {api_key}") 
 
 def get_previsions(ville, api_key):
     url = f"https://api.openweathermap.org/data/2.5/forecast?q={ville}&appid={api_key}&units=metric&lang=fr" 
@@ -37,12 +43,11 @@ def vetement(temp, pluie):
     else:
         return f"Il fait {temp}°C aujourd'hui, n'oubliez pas vos lunettes de soleil 😉"
     
-#def get_heure():
-#    jour = datetime.now()
-#    heure_actuelle = jour.hour
-
-    
-
+def get_heure(decalage_secondes):
+    temps_uct = datetime.now(timezone.utc)
+    shift = timedelta(seconds=decalage_secondes)
+    temps_local = temps_uct + shift
+    return temps_local.strftime("%H:%M")
 
 @app.route('/', methods=['GET', 'POST'])    
 def get_weather():
@@ -65,9 +70,14 @@ def get_weather():
                 
                 le_conseil = vetement(temp_actuelle, pluie_actuelle)
                 
+                decalage = data['timezone']
+                
+                heure_locale = get_heure(decalage)
+
                 ma_meteo = {
                     "ville": data["name"],
                     "temperature": temp_actuelle,
+                    "heure" : heure_locale,
                     "description": data['weather'][0]['description'],
                     "icon": data['weather'][0]['icon'],
                     "humidite": data['main']['humidity'],
@@ -78,6 +88,7 @@ def get_weather():
                 
                 previ = get_previsions(ville, api_key)
             else:
+                print(f"Erreur API : {reponse.status_code}")
                 message_erreur = "Ville introuvable, vérifiez l'orthographe"
                 
     return render_template("index.html", ma_meteo=ma_meteo, previsions=previ, error=message_erreur)

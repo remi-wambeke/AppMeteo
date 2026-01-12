@@ -47,7 +47,12 @@
 
     {% if ma_meteo %}
         <div class="meteo-actuelle">
-            <h2>{{ ma_meteo.ville }}</h2>
+        <h2>
+            {{ ma_meteo.ville }} 
+            <span style="font-size: 0.6em; color: #666; font-weight: normal;">
+                ({{ ma_meteo.heure }})
+            </span>
+        </h2>
             <img src="http://openweathermap.org/img/wn/{{ ma_meteo.icon }}@2x.png" alt="icon">
             <p>{{ ma_meteo.description }}</p>
             <div class="temp-grosse">{{ ma_meteo.temperature }}°C</div>
