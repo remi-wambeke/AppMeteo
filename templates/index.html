@@ -10,16 +10,13 @@
         button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
         button:hover { background-color: #0056b3; }
         
-        /* Style des résultats */
         .meteo-actuelle { margin-top: 30px; }
         .temp-grosse { font-size: 50px; font-weight: bold; color: #2c3e50; margin: 10px 0; }
-        .details { display: flex; justify-content: space-around; margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 10px; }
+        .details { display: flex; justify-content: space-around; margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 10px; align-items: center; }
         
-        /* Style des prévisions */
         .previsions-container { display: flex; justify-content: space-between; margin-top: 30px; gap: 10px; overflow-x: auto; }
         .carte-previ { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; flex: 1; min-width: 80px; }
         
-        /* Style du Conseil (En bas) */
         .conseil-box { 
             margin-top: 40px; 
             padding: 20px; 
@@ -37,7 +34,7 @@
     <h1>🌤️ Météo Python</h1>
     
     <form method="POST">
-        <input type="text" name="ville_utilisateur" placeholder="Entrez une ville (ex: Mortcerf)" required>
+        <input type="text" name="ville_utilisateur" placeholder="Entrez une ville (ex: Paris)" required>
         <button type="submit">Rechercher</button>
     </form>
 
@@ -47,12 +44,13 @@
 
     {% if ma_meteo %}
         <div class="meteo-actuelle">
-        <h2>
-            {{ ma_meteo.ville }} 
-            <span style="font-size: 0.6em; color: #666; font-weight: normal;">
-                ({{ ma_meteo.heure }})
-            </span>
-        </h2>
+            <h2>
+                {{ ma_meteo.ville }} 
+                <span style="font-size: 0.6em; color: #666; font-weight: normal;">
+                    ({{ ma_meteo.heure }})
+                </span>
+            </h2>
+
             <img src="http://openweathermap.org/img/wn/{{ ma_meteo.icon }}@2x.png" alt="icon">
             <p>{{ ma_meteo.description }}</p>
             <div class="temp-grosse">{{ ma_meteo.temperature }}°C</div>
@@ -60,6 +58,13 @@
             <div class="details">
                 <div>💧 {{ ma_meteo.humidite }}%<br><small>Humidité</small></div>
                 <div>💨 {{ ma_meteo.vent }} km/h<br><small>Vent</small></div>
+                
+                <div>
+                    🌅 {{ ma_meteo.lever }}<br>
+                    🌇 {{ ma_meteo.coucher }}<br>
+                    <small>Soleil</small>
+                </div>
+
                 {% if ma_meteo.pluie > 0 %}
                 <div>☔ {{ ma_meteo.pluie }} mm<br><small>Pluie</small></div>
                 {% endif %}

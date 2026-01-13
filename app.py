@@ -10,8 +10,6 @@ app = Flask(__name__)
 
 api_key = os.getenv("OPENWEATHER_API_KEY")
 
-print(f"Ma clé API est : {api_key}") 
-
 def get_previsions(ville, api_key):
     url = f"https://api.openweathermap.org/data/2.5/forecast?q={ville}&appid={api_key}&units=metric&lang=fr" 
     reponse = requests.get(url)
@@ -49,6 +47,12 @@ def get_heure(decalage_secondes):
     temps_local = temps_uct + shift
     return temps_local.strftime("%H:%M")
 
+def format_timestamp(ts, decalage_secondes):
+     date_uct = datetime.fromtimestamp(ts, timezone.utc)
+     shift = timedelta(seconds=decalage_secondes)
+     heure_locale = date_uct + shift
+     return heure_locale.strftime("%H:%M")
+
 @app.route('/', methods=['GET', 'POST'])    
 def get_weather():
     ma_meteo = None
@@ -74,10 +78,15 @@ def get_weather():
                 
                 heure_locale = get_heure(decalage)
 
+                lever_soleil = format_timestamp(data["sys"]["sunrise"], decalage)
+                coucher_soleil = format_timestamp(data["sys"]["sunset"], decalage)
+
                 ma_meteo = {
                     "ville": data["name"],
                     "temperature": temp_actuelle,
                     "heure" : heure_locale,
+                    "lever" : lever_soleil,
+                    "coucher" : coucher_soleil,
                     "description": data['weather'][0]['description'],
                     "icon": data['weather'][0]['icon'],
                     "humidite": data['main']['humidity'],
