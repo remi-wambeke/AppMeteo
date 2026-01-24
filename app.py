@@ -3,6 +3,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -19,11 +20,17 @@ def get_previsions(ville, api_key):
         previsions = []
         for elements in previsions_brouillon:
             if "12:00:00" in elements["dt_txt"]:
+                date_objet = datetime.strptime(elements['dt_txt'], "%Y-%m-%d %H:%M:%S")
+                date_fr = date_objet.strftime("%d/%m/%Y")
                 previsions_of_the_day = {
-                    "date": elements['dt_txt'][:10],
+                    "date": date_fr,
                     "temp": round(elements['main']['temp']),
+                    "ressentie": round(elements['main']['feels_like']), 
                     "description": elements['weather'][0]['description'],
-                    "icon": elements['weather'][0]['icon']
+                    "icon": elements['weather'][0]['icon'],
+                    "humidite": elements['main']['humidity'],          
+                    "vent": round(elements['wind']['speed'] * 3.6),    
+                    "pluie": elements.get('rain', {}).get('3h', 0)     
                 }
                 previsions.append(previsions_of_the_day)
         return previsions
@@ -70,6 +77,7 @@ def get_weather():
                 data = reponse.json()
                 
                 temp_actuelle = round(data['main']['temp'], 1)
+                ressentie_actuelle = round(data['main']['feels_like'], 1)
                 pluie_actuelle = data.get('rain', {}).get('1h', 0)
                 
                 le_conseil = vetement(temp_actuelle, pluie_actuelle)
@@ -84,6 +92,7 @@ def get_weather():
                 ma_meteo = {
                     "ville": data["name"],
                     "temperature": temp_actuelle,
+                    "ressentie": ressentie_actuelle,
                     "heure" : heure_locale,
                     "lever" : lever_soleil,
                     "coucher" : coucher_soleil,

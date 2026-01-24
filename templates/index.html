@@ -11,27 +11,32 @@
         button:hover { background-color: #0056b3; }
         
         .meteo-actuelle { margin-top: 30px; }
-        .temp-grosse { font-size: 50px; font-weight: bold; color: #2c3e50; margin: 10px 0; }
+        
+        /* STYLE POUR LES TEMPÉRATURES CÔTE À CÔTE */
+        .temperature-container { display: flex; justify-content: center; gap: 40px; margin: 20px 0; }
+        .bloc-temp { display: flex; flex-direction: column; align-items: center; }
+        .titre-temp { font-size: 0.9em; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-weight: 600; }
+        .temp-grosse { font-size: 45px; font-weight: bold; color: #2c3e50; margin: 0; }
+        
         .details { display: flex; justify-content: space-around; margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 10px; align-items: center; }
         
         .previsions-container { display: flex; justify-content: space-between; margin-top: 30px; gap: 10px; overflow-x: auto; }
-        .carte-previ { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; flex: 1; min-width: 80px; }
         
-        .conseil-box { 
-            margin-top: 40px; 
-            padding: 20px; 
-            background-color: #fff3cd; 
-            border-left: 5px solid #ffc107; 
-            text-align: left;
-            border-radius: 5px;
+        /* CURSEUR POUR MONTRER QUE C'EST CLIQUABLE */
+        .carte-previ { 
+            background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; flex: 1; min-width: 80px; 
+            cursor: pointer; transition: transform 0.2s, background-color 0.2s;
         }
+        .carte-previ:hover { transform: scale(1.05); background-color: #f0f8ff; border-color: #007bff; }
+
+        .conseil-box { margin-top: 40px; padding: 20px; background-color: #fff3cd; border-left: 5px solid #ffc107; text-align: left; border-radius: 5px; }
         .conseil-titre { font-weight: bold; color: #856404; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🌤️ Météo Python</h1>
+    <h1>🌤️ Météo</h1>
     
     <form method="POST">
         <input type="text" name="ville_utilisateur" placeholder="Entrez une ville (ex: Paris)" required>
@@ -44,43 +49,87 @@
 
     {% if ma_meteo %}
         <div class="meteo-actuelle">
-            <h2>
+            <h2 id="main-titre">
                 {{ ma_meteo.ville }} 
-                <span style="font-size: 0.6em; color: #666; font-weight: normal;">
-                    ({{ ma_meteo.heure }})
-                </span>
+                <span id="main-heure" style="font-size: 0.6em; color: #666; font-weight: normal;">({{ ma_meteo.heure }})</span>
             </h2>
 
-            <img src="http://openweathermap.org/img/wn/{{ ma_meteo.icon }}@2x.png" alt="icon">
-            <p>{{ ma_meteo.description }}</p>
-            <div class="temp-grosse">{{ ma_meteo.temperature }}°C</div>
+            <img id="main-icon" src="http://openweathermap.org/img/wn/{{ ma_meteo.icon }}@2x.png" alt="icon">
+            <p id="main-desc">{{ ma_meteo.description }}</p>
             
+            <div class="temperature-container">
+                <div class="bloc-temp">
+                    <span class="titre-temp">Température</span>
+                    <div id="main-temp" class="temp-grosse">{{ ma_meteo.temperature }}°C</div>
+                </div>
+                <div class="bloc-temp">
+                    <span class="titre-temp">Ressentie</span>
+                    <div id="main-ressentie" class="temp-grosse" style="color: #666;">{{ ma_meteo.ressentie }}°C</div>
+                </div>
+            </div>
+
             <div class="details">
-                <div>💧 {{ ma_meteo.humidite }}%<br><small>Humidité</small></div>
-                <div>💨 {{ ma_meteo.vent }} km/h<br><small>Vent</small></div>
+                <div>💧 <span id="main-hum">{{ ma_meteo.humidite }}</span>%<br><small>Humidité</small></div>
+                <div>💨 <span id="main-vent">{{ ma_meteo.vent }}</span> km/h<br><small>Vent</small></div>
                 
-                <div>
+                <div id="bloc-soleil">
                     🌅 {{ ma_meteo.lever }}<br>
                     🌇 {{ ma_meteo.coucher }}<br>
                     <small>Soleil</small>
                 </div>
 
-                {% if ma_meteo.pluie > 0 %}
-                <div>☔ {{ ma_meteo.pluie }} mm<br><small>Pluie</small></div>
-                {% endif %}
+                {% if ma_meteo.pluie is defined and ma_meteo.pluie > 0 %}
+                <div id="bloc-pluie" style="display: block;">
+                    ☔ <span id="main-pluie">{{ ma_meteo.pluie }}</span> mm<br><small>Pluie</small>
+                </div>
+                
+                {% else %}
+                <div id="bloc-pluie" style="display: none;">
+                    ☔ <span id="main-pluie">0</span> mm<br><small>Pluie</small>
+                </div>
+                {% endif %}                    
             </div>
         </div>
 
         {% if previsions %}
         <h3>Prévisions sur 5 jours</h3>
         <div class="previsions-container">
+            <div class="carte-previ" 
+                 onclick="updateMeteo(this)"
+                 style="background-color: #e3f2fd; border-color: #90caf9;"
+                 data-date="Aujourd'hui"
+                 data-heure="{{ ma_meteo.heure }}"
+                 data-temp="{{ ma_meteo.temperature }}"
+                 data-ressentie="{{ ma_meteo.ressentie }}"
+                 data-desc="{{ ma_meteo.description }}"
+                 data-icon="{{ ma_meteo.icon }}"
+                 data-hum="{{ ma_meteo.humidite }}"
+                 data-vent="{{ ma_meteo.vent }}"
+                 data-pluie="{{ ma_meteo.pluie }}"
+                 data-has-sun="true"> 
+                 
+                <small> Aujourd'hui </small><br>
+                <img src="http://openweathermap.org/img/wn/{{ ma_meteo.icon }}.png" width="50"><br>
+                <strong>{{ ma_meteo.temperature }}°C</strong>
+            </div>
+
             {% for jour in previsions %}
-            <div class="carte-previ">
-                <small>{{ jour.date }}</small><br>
+            <div class="carte-previ" 
+                 onclick="updateMeteo(this)"
+                 data-date="{{ jour.date }}"
+                 data-temp="{{ jour.temp }}"
+                 data-ressentie="{{ jour.ressentie }}"
+                 data-desc="{{ jour.description }}"
+                 data-icon="{{ jour.icon }}"
+                 data-hum="{{ jour.humidite }}"
+                 data-vent="{{ jour.vent }}"
+                 data-pluie="{{ jour.pluie }}"
+                 data-has-sun="false"> <small>{{ jour.date }}</small><br>
                 <img src="http://openweathermap.org/img/wn/{{ jour.icon }}.png" width="50"><br>
                 <strong>{{ jour.temp }}°C</strong>
             </div>
             {% endfor %}
+            
         </div>
         {% endif %}
 
@@ -90,6 +139,11 @@
         </div>
     {% endif %}
 </div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
 
 </body>
 </html>
